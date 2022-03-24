@@ -1,0 +1,117 @@
+<!-- Exemplos de uso: O Decorator é bastante padrão no código PHP, especialmente nos códigos relacionados a fluxos.
+
+Identificação: O Decorator pode ser reconhecido por métodos de criação ou construtores que aceitam objetos da mesma classe ou interface que uma classe atual. -->
+
+<?php
+
+namespace RefactoringGuru\Decorator\Conceptual;
+
+/**
+ * A interface Component base define operações que podem ser alteradas por
+ * decoradores. 
+ */
+interface Component
+{
+    public function operation(): string;
+}
+
+/**
+ * Componentes Concretos fornecem implementações padrão das operações. Lá
+ * podem ser várias variações dessas classes. 
+ */
+class ConcreteComponent implements Component
+{
+    public function operation(): string
+    {
+        return "ConcreteComponent";
+    }
+}
+
+/**
+ * A classe base Decorator segue a mesma interface dos demais componentes.
+ * O objetivo principal desta classe é definir a interface de encapsulamento para todos
+ * decoradores de concreto. A implementação padrão do código de encapsulamento pode
+ * inclua um campo para armazenar um componente encapsulado e os meios para inicializar
+ * isto. 
+ */
+class Decorator implements Component
+{
+    /**
+     * @var Component
+     */
+    protected $component;
+
+    public function __construct(Component $component)
+    {
+        $this->component = $component;
+    }
+
+    /**
+     * O Decorator delega todo o trabalho ao componente encapsulado. 
+     */
+    public function operation(): string
+    {
+        return $this->component->operation();
+    }
+}
+
+/**
+ * Os Decoradores Concretos chamam o objeto encapsulado e alteram seu resultado de alguma forma. 
+ */
+class ConcreteDecoratorA extends Decorator
+{
+    /**
+     * Decoradores podem chamar a implementação pai da operação, em vez de
+     * chamando o objeto encapsulado diretamente. Esta abordagem simplifica a extensão
+     * das classes de decorador. 
+     */
+    public function operation(): string
+    {
+        return "ConcreteDecoratorA(" . parent::operation() . ")";
+    }
+}
+
+/**
+ * Decoradores podem executar seu comportamento antes ou depois da chamada para um
+ * objeto embrulhado. 
+ */
+class ConcreteDecoratorB extends Decorator
+{
+    public function operation(): string
+    {
+        return "ConcreteDecoratorB(" . parent::operation() . ")";
+    }
+}
+
+/**
+ * O código cliente funciona com todos os objetos usando a interface Component. este
+ * maneira que pode ficar independente das classes concretas de componentes que trabalha
+ * com. 
+ */
+function clientCode(Component $component)
+{
+    // ...
+
+    echo "RESULT: " . $component->operation();
+
+    // ...
+}
+
+/**
+ * Desta forma, o código do cliente pode suportar componentes simples... 
+ */
+$simple = new ConcreteComponent();
+echo "Client: I've got a simple component:\n";
+clientCode($simple);
+echo "\n\n";
+
+/**
+ * ...bem como os decorados.
+ *
+ * Observe como os decoradores podem envolver não apenas componentes simples, mas os outros
+ * decoradores também. 
+ */
+$decorator1 = new ConcreteDecoratorA($simple);
+$decorator2 = new ConcreteDecoratorB($decorator1);
+echo "Client: Now I've got a decorated component:\n";
+clientCode($decorator2);
